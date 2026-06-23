@@ -107,7 +107,13 @@ pub fn Directory::close(self : Directory) -> Unit {
 }
 
 ///|
+#cfg(target="native")
 extern "C" fn Directory::min_buffer_size() -> Int = "moonbitlang_async_dir_buffer_min_size"
+
+///|
+#cfg(target="wasm")
+#unsafe_skip_stub_check
+fn Directory::min_buffer_size() -> Int = "moonbitlang/async" "fs/dir_buffer_min_size"
 
 ///|
 /// Open the directory at `path`. `path` is encoded UTF8.
@@ -153,6 +159,7 @@ fn Directory::from_io_handle(io : @event_loop.IoHandle) -> Directory {
 }
 
 ///|
+#cfg(target="native")
 #borrow(buf)
 extern "C" fn Directory::entry_length(
   buf : FixedArray[Byte],
@@ -160,6 +167,13 @@ extern "C" fn Directory::entry_length(
 ) -> Int = "moonbitlang_async_dir_entry_length"
 
 ///|
+#cfg(target="wasm")
+#unsafe_skip_stub_check
+#borrow(buf)
+fn Directory::entry_length(buf : FixedArray[Byte], offset : Int) -> Int = "moonbitlang/async" "fs/dir_entry_length"
+
+///|
+#cfg(target="native")
 #borrow(buf)
 extern "C" fn Directory::entry_name_len(
   buf : FixedArray[Byte],
@@ -167,6 +181,13 @@ extern "C" fn Directory::entry_name_len(
 ) -> Int = "moonbitlang_async_dir_entry_get_name_len"
 
 ///|
+#cfg(target="wasm")
+#unsafe_skip_stub_check
+#borrow(buf)
+fn Directory::entry_name_len(buf : FixedArray[Byte], offset : Int) -> Int = "moonbitlang/async" "fs/dir_entry_get_name_len"
+
+///|
+#cfg(target="native")
 #borrow(buf)
 extern "C" fn Directory::entry_name(
   buf : FixedArray[Byte],
@@ -174,6 +195,16 @@ extern "C" fn Directory::entry_name(
 ) -> @c_buffer.Buffer = "moonbitlang_async_dir_entry_get_name"
 
 ///|
+#cfg(target="wasm")
+#unsafe_skip_stub_check
+#borrow(buf)
+fn Directory::entry_name(
+  buf : FixedArray[Byte],
+  offset : Int,
+) -> @c_buffer.Buffer = "moonbitlang/async" "fs/dir_entry_get_name"
+
+///|
+#cfg(target="native")
 #borrow(buf)
 extern "C" fn Directory::entry_is_dir(
   buf : FixedArray[Byte],
@@ -181,6 +212,13 @@ extern "C" fn Directory::entry_is_dir(
 ) -> Int = "moonbitlang_async_dir_entry_is_dir"
 
 ///|
+#cfg(target="wasm")
+#unsafe_skip_stub_check
+#borrow(buf)
+fn Directory::entry_is_dir(buf : FixedArray[Byte], offset : Int) -> Int = "moonbitlang/async" "fs/dir_entry_is_dir"
+
+///|
+#cfg(target="native")
 #borrow(buf)
 extern "C" fn Directory::entry_is_hidden(
   buf : FixedArray[Byte],
@@ -188,11 +226,24 @@ extern "C" fn Directory::entry_is_hidden(
 ) -> Bool = "moonbitlang_async_dir_entry_is_hidden"
 
 ///|
+#cfg(target="wasm")
+#unsafe_skip_stub_check
+#borrow(buf)
+fn Directory::entry_is_hidden(buf : FixedArray[Byte], offset : Int) -> Bool = "moonbitlang/async" "fs/dir_entry_is_hidden"
+
+///|
+#cfg(target="native")
 #borrow(buf)
 extern "C" fn Directory::entry_file_id(
   buf : FixedArray[Byte],
   offset : Int,
 ) -> UInt64 = "moonbitlang_async_dir_entry_get_file_id"
+
+///|
+#cfg(target="wasm")
+#unsafe_skip_stub_check
+#borrow(buf)
+fn Directory::entry_file_id(buf : FixedArray[Byte], offset : Int) -> UInt64 = "moonbitlang/async" "fs/dir_entry_get_file_id"
 
 ///|
 #valtype
@@ -293,7 +344,11 @@ async fn Directory::next_aux(
     }
   }
   let file_id = Directory::entry_file_id(dir.buf, offset)
-  Some({ name, is_dir, file_id })
+  let entry = { name, is_dir, file_id }
+  // Native file watching consumes this private field. Wasm keeps the same
+  // entry shape even though watch support is not compiled there yet.
+  ignore(entry.file_id)
+  Some(entry)
 }
 
 ///|
