@@ -27,6 +27,10 @@ fn make_tcp_socket(family : AddrFamily, context~ : String) -> @fd_util.Fd raise 
 }
 
 ///|
+// mingw needs iphlpapi linked explicitly (MSVC auto-links it via the
+// `#pragma comment(lib, "Iphlpapi.lib")` in socket.c, which mingw ignores). The
+// build tool renders `-liphlpapi` for windows-gnu.
+#link("iphlpapi", platform="windows-gnu")
 #cfg(platform="windows")
 fn make_tcp_socket(family : AddrFamily, context~ : String) -> @fd_util.Fd raise {
   let sock = make_tcp_socket_ffi(family)

@@ -18,6 +18,10 @@
 priv type IoResult
 
 ///|
+// mingw needs ws2_32 linked explicitly (MSVC auto-links it via the
+// `#pragma comment(lib, "ws2_32.lib")` in io_windows.c, which mingw ignores).
+// The build tool collects this per package and renders `-lws2_32` for windows-gnu.
+#link("ws2_32", platform="windows-gnu")
 #cfg(platform="windows")
 #owned(buf)
 extern "C" fn IoResult::for_file(

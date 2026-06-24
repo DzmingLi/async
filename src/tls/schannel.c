@@ -21,7 +21,7 @@
 #include <bcrypt.h>
 
 // https://learn.microsoft.com/en-us/windows/win32/api/schannel/ns-schannel-sch_credentials
-#include <SubAuth.h>
+#include <subauth.h>
 #define SCHANNEL_USE_BLACKLISTS
 #include <schannel.h>
 

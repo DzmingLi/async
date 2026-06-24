@@ -18,6 +18,10 @@
 priv type Schannel
 
 ///|
+// mingw needs these linked explicitly (MSVC auto-links them via
+// `#pragma comment(lib, ...)` in schannel.c, which mingw ignores). The build tool
+// renders `-lsecur32 -lcrypt32 -lbcrypt` for windows-gnu.
+#link("secur32", "crypt32", "bcrypt", platform="windows-gnu")
 #cfg(platform="windows")
 extern "C" fn Schannel::new() -> Schannel = "moonbitlang_async_schannel_new"
 

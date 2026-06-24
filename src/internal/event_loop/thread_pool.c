@@ -19,9 +19,13 @@
 
 #ifdef _WIN32
 
-#ifndef _MSC_VER
-#error "Currently only MSVC is supported on Windows"
-#endif
+// Both MSVC and mingw-w64 (GCC/clang `-target x86_64-windows-gnu`) are supported:
+// the Windows branch below uses only the Win32 API (windows.h / winsock2.h), which
+// mingw-w64 provides in full. The one difference is system-library linking — MSVC
+// auto-links via `#pragma comment(lib, ...)` in the source, which mingw ignores, so
+// under mingw those libs (ws2_32, iphlpapi, secur32, crypt32, bcrypt) are linked via
+// toolchain-conditional `#link(..., platform="windows-gnu")` attributes in the
+// corresponding MoonBit packages (resolved by the build tool, e.g. mymoon).
 
 #include <winsock2.h>
 #include <windows.h>

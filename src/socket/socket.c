@@ -118,6 +118,10 @@ HANDLE moonbitlang_async_make_udp_socket(int family, int32_t multicast) {
     return INVALID_HANDLE_VALUE;
 
   if (multicast) {
+    // SO_REUSE_MULTICASTPORT is a Windows-10-era Winsock option; older mingw-w64
+    // headers may not define it. Guard so the source builds under mingw — newer
+    // mingw-w64 (and MSVC) still enable the option, older toolchains skip it.
+#ifdef SO_REUSE_MULTICASTPORT
     int reuse_multicastport = 1;
     if (
       setsockopt(
@@ -131,6 +135,7 @@ HANDLE moonbitlang_async_make_udp_socket(int family, int32_t multicast) {
       closesocket(sock);
       return INVALID_HANDLE_VALUE;
     }
+#endif
   } else {
     int exclusive_addruse = 0;
     if (
